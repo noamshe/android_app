@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">myapp</string>
+    <string name="server_url">http://ec2-54-201-117-105.us-west-2.compute.amazonaws.com/4.php</string>
+</resources>
