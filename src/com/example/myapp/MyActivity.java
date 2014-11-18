@@ -3,28 +3,28 @@ package com.example.myapp;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
+import android.view.View;
+import android.widget.*;
+import com.google.gson.Gson;
 import com.noam.utils.Callback;
 import com.noam.utils.WordsServerCall;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyActivity extends Activity implements Callback {
+public class MyActivity extends Activity implements Callback, AdapterView.OnItemSelectedListener {
   /**
    * Called when the activity is first created.
    */
   private Spinner spinner1, spinner2;
   private Button btnSubmit;
+  private WordsServerCall wordsServerCall;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-    WordsServerCall wordsServerCall = new WordsServerCall(this, this);
+    wordsServerCall = new WordsServerCall(this, this);
     Log.d("main", "TESTING");
     wordsServerCall.getWords("bla");
   }
@@ -48,6 +48,12 @@ public class MyActivity extends Activity implements Callback {
     spinner2.setAdapter(dataAdapter);
   }
 
+  public void addListenerOnSpinnerItemSelection() {
+    spinner1 = (Spinner) findViewById(R.id.spinner2);
+//    spinner1.setOnItemSelectedListener(new CustomOnItemSelectedListener());
+    spinner1.setOnItemSelectedListener(this);
+  }
+
   @Override
   public void call(final String result) {
     runOnUiThread(new Runnable() {
@@ -55,15 +61,36 @@ public class MyActivity extends Activity implements Callback {
       public void run() {
 //        ((TextView) findViewById(R.id.words)).setText(result);
         Gson gson = new Gson();
-//        String result = "[{\"id\":\"1\", \"theme_name\":\"The Shadow Of the Wind\"}, {\"id\":\"2\", \"theme_name\":\"Gone With The Wind\"}]";
-//        String result = "{\"themes\":[{'id':'1', 'theme_name':'The Shadow Of the Wind'}, {'id':'2', 'theme_name':'Gone With The Wind'}]}";
         String result = "{\"themes\":[{\"id\":\"1\", \"theme_name\":\"The Shadow Of the Wind\"}, {\"id\":\"2\", \"theme_name\":\"Gone With The Wind\"}]}";
-//        String result = "{\"id\":\"1\", \"theme_name\":\"The Shadow Of the Wind\"}";
-//        Theme theme = gson.fromJson(result, Theme.class);
         ThemeList themeList = gson.fromJson(result, ThemeList.class);
-//
         addItemsOnSpinner2(themeList);
+
+        addListenerOnSpinnerItemSelection();
       }
     });
+  }
+
+  @Override
+  public void onItemSelected(final AdapterView<?> parent, View view, final int position, long id) {
+    Toast.makeText(parent.getContext(),
+        "OnItemSelectedListener : " + parent.getItemAtPosition(position).toString(),
+        Toast.LENGTH_SHORT).show();
+    wordsServerCall = new WordsServerCall(this, new Callback() {
+      @Override
+      public void call(final String result) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            Toast.makeText(parent.getContext(), result, Toast.LENGTH_SHORT).show();
+          }
+        });
+      }
+    });
+    wordsServerCall.getWords("bla");
+  }
+
+  @Override
+  public void onNothingSelected(AdapterView<?> parent) {
+
   }
 }
